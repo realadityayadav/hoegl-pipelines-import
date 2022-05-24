@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2019 TechDivision GmbH
+ * All rights reserved
+ *
+ * This product includes proprietary software developed at TechDivision GmbH, Germany
+ * For more information see http://www.techdivision.com/
+ *
+ * To obtain a valid license for using this software please contact us at
+ * license@techdivision.com
+ *
+ *
+ * @copyright       Copyright (c) 2019 TechDivision GmbH (http://www.techdivision.com)
+ * @link            http://www.techdivision.com/
+ * @author          Team Allstars <allstars@techdivision.com>
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <import>
+            <stock_import>
+                <directory>var/import/erp</directory>
+                <file_pattern>STOCK-*</file_pattern>
+            </stock_import>
+            <price_import>
+                <directory>var/import/erp</directory>
+                <file_pattern>PRICE-*</file_pattern>
+                <country_code_mapping>
+                    <![CDATA[{
+                        "AT":["b2b_hoe_at","b2b_ha_at","b2b_ga_at"],
+                        "DE":["b2b_hoe_de"]
+                    }]]>
+                </country_code_mapping>
+            </price_import>
+            <customer_import>
+                <directory>var/import/erp</directory>
+                <file_pattern>CUSTOMER-*</file_pattern>
+                <country_mapping>
+                    <![CDATA[{
+                        "A":"at",
+                        "D":"de",
+                        "GB":"en",
+                        "CH":"ch",
+                        "NL":"nl",
+                        "AT":"at",
+                        "DE":"de",
+                        "IT":"it"
+                    }]]>
+                </country_mapping>
+                <country_mapping_additional>
+                    <![CDATA[{
+                        "A":"at",
+                        "D":"de",
+                        "GB":"gb",
+                        "CH":"ch",
+                        "NL":"nl",
+                        "AT":"at",
+                        "DE":"de",
+                        "IT":"it"
+                    }]]>
+                </country_mapping_additional>
+            </customer_import>
+            <stock_import>
+                <threshold>1000</threshold>
+            </stock_import>
+        </import>
+    </default>
+</config>

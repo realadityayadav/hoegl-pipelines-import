@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2019 TechDivision GmbH
+ * All rights reserved
+ *
+ * This product includes proprietary software developed at TechDivision GmbH, Germany
+ * For more information see http://www.techdivision.com/
+ *
+ * To obtain a valid license for using this software please contact us at
+ * license@techdivision.com
+ *
+ *
+ * @copyright       Copyright (c) 2019 TechDivision GmbH (http://www.techdivision.com)
+ * @link            http://www.techdivision.com/
+ * @author          Team Allstars <allstars@techdivision.com>
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Hoegl\PipelinesImport\Model\Virtual\Condition\ReindexCompleted" type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item name="step_filter" xsi:type="string">reindex</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Hoegl\PipelinesImport\Model\Virtual\Condition\PriceAndReadyFilePresent" type="Hoegl\PipelinesImport\Model\Condition\ImportAndReadyFileExist">
+        <arguments>
+            <argument name="importSourceDirectoryProvider" xsi:type="object">Hoegl\PipelinesImport\Model\Provider\PriceImportDirectoryProvider</argument>
+            <argument name="filePatternConfigPath" xsi:type="string">import/price_import/file_pattern</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Hoegl\PipelinesImport\Model\Virtual\Condition\StockAndReadyFilePresent" type="Hoegl\PipelinesImport\Model\Condition\ImportAndReadyFileExist">
+        <arguments>
+            <argument name="importSourceDirectoryProvider" xsi:type="object">\Hoegl\PipelinesImport\Model\Provider\StockImportDirectoryProvider</argument>
+            <argument name="filePatternConfigPath" xsi:type="string">import/stock_import/file_pattern</argument>
+        </arguments>
+    </virtualType>
+
+    <preference for="Hoegl\PipelinesImport\Api\FullReindexConfigInterface"
+                type="Hoegl\PipelinesImport\Model\ConfigProvider\FullReindexConfig" />
+</config>

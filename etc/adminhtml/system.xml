@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2019 TechDivision GmbH
+ * All rights reserved
+ *
+ * This product includes proprietary software developed at TechDivision GmbH, Germany
+ * For more information see http://www.techdivision.com/
+ *
+ * To obtain a valid license for using this software please contact us at
+ * license@techdivision.com
+ *
+ *
+ * @copyright       Copyright (c) 2019 TechDivision GmbH (http://www.techdivision.com)
+ * @link            http://www.techdivision.com/
+ * @author          Team Allstars <allstars@techdivision.com>
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="hoegl" translate="label" sortOrder="500">
+            <label>Högl</label>
+        </tab>
+        <section id="import" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Import</label>
+            <tab>hoegl</tab>
+            <resource>Hoegl_PipelinesImport::import_config</resource>
+            <group id="price_import" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Price Import</label>
+                <field id="country_code_mapping" translate="label" sortOrder="6" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Country Code Mapping</label>
+                    <frontend_model>Hoegl\PipelinesImport\Block\System\Config\Form\Field\FieldArray\CountryCodeMapping</frontend_model>
+                    <backend_model>Hoegl\PipelinesImport\Model\System\Config\Backend\CountryCodeMapping</backend_model>
+                </field>
+            </group>
+            <group id="customer_import" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Customer Import</label>
+                <field id="country_mapping" translate="label" sortOrder="6" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Country Code Mapping</label>
+                    <frontend_model>Hoegl\PipelinesImport\Block\System\Config\Form\Field\FieldArray\CountryMapping</frontend_model>
+                    <backend_model>Hoegl\PipelinesImport\Model\System\Config\Backend\CountryMapping</backend_model>
+                </field>
+                <field id="country_mapping_additional" translate="label" sortOrder="7" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Additional Country Code Mapping</label>
+                    <frontend_model>Hoegl\PipelinesImport\Block\System\Config\Form\Field\FieldArray\CountryMapping</frontend_model>
+                    <backend_model>Hoegl\PipelinesImport\Model\System\Config\Backend\CountryMapping</backend_model>
+                </field>
+            </group>
+            <group id="stock_import" translate="label" type="number" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Stock Import</label>
+                <field id="threshold" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Threshold for Delta or Full Index</label>
+                    <validate>integer validate-no-empty validate-zero-or-greater</validate>
+                    <comment>Threshold to decide whether Delta or Full Index should be used (Threshold smaller: Delta, greater: Full)</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

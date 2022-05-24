@@ -1,0 +1,16 @@
+{
+    "name": "hoegl/pipelines-import",
+    "description": "N/A",
+    "require": {
+        "magento/framework": "*"
+    },
+    "type": "magento2-module",
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Hoegl\\PipelinesImport\\": ""
+        }
+    }
+}

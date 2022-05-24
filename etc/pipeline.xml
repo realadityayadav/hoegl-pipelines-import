@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2019 TechDivision GmbH
+ * All rights reserved
+ *
+ * This product includes proprietary software developed at TechDivision GmbH, Germany
+ * For more information see http://www.techdivision.com/
+ *
+ * To obtain a valid license for using this software please contact us at
+ * license@techdivision.com
+ *
+ *
+ * @copyright       Copyright (c) 2019 TechDivision GmbH (http://www.techdivision.com)
+ * @link            http://www.techdivision.com/
+ * @author          Team Allstars <allstars@techdivision.com>
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:TechDivision/ProcessPipelines/etc/pipeline.xsd">
+    <!--
+    ###############
+    ## PRICE Import
+    ###############
+    -->
+    <pipeline name="price_import" description="Price Import" use-working-directory="true" expire-in="3 hours">
+        <conditions>
+            <pipeline_condition type="TechDivision\ProcessPipelines\Helper\Condition\Pipeline\NoSiblingInProgress" description="Check that pipeline isn't already running"/>
+            <pipeline_condition type="Hoegl\PipelinesImport\Model\Virtual\Condition\PriceAndReadyFilePresent" description="Check if price and ready file for import exist."/>
+        </conditions>
+        <step name="move_files" executorType="Hoegl\Pipelines\Model\Executor\MoveFiles" sortOrder="10" description="Move files to working directory.">
+            <conditions>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="price_transformation" executorType="\Hoegl\Pipelines\Model\Executor\TransformationStep" sortOrder="20" description="Transform the price import files.">
+            <arguments>
+                <argument key="config_key" value="import-price" />
+                <argument key="command" value="import:products" />
+                <argument key="operation" value="convert" />
+            </arguments>
+            <conditions>
+                <step_condition type="Hoegl\Pipelines\Model\Condition\CanLoadConfiguration" description="Load config_key."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="index_suspender_start" executorType="\Hoegl\PipelinesImport\Model\Executor\IndexSuspender\Start" sortOrder="30" description="Suspend Indexer" >
+            <conditions>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="price_import" executorType="\TechDivision\PacemakerImportBase\Model\Executor\ImportExecutor" sortOrder="40" description="Import the price.">
+            <arguments>
+                <argument key="config_key" value="import-price" />
+                <argument key="command" value="import:products" />
+                <argument key="operation" value="add-update" />
+            </arguments>
+            <conditions>
+                <step_condition type="Hoegl\Pipelines\Model\Condition\CanLoadConfiguration" description="Load config_key."/>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\PreventDatabaseConflicts" description="Assure that no conflicting steps are running or enqueued"/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\DeltaIsFinished" description="Prevent that price import start while delta index is running."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="price_b2b_import" executorType="\TechDivision\PacemakerImportBase\Model\Executor\ImportExecutor" sortOrder="41" description="Import the price.">
+            <arguments>
+                <argument key="config_key" value="import-b2b-price" />
+                <argument key="command" value="import:products" />
+                <argument key="operation" value="add-update" />
+            </arguments>
+            <conditions>
+                <step_condition type="Hoegl\Pipelines\Model\Condition\CanLoadConfiguration" description="Load config_key."/>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\PreventDatabaseConflicts" description="Assure that no conflicting steps are running or enqueued"/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="reindex" executorType="TechDivision\ProcessPipelines\Model\Executor\Reindex" sortOrder="50" description="Reindex catalog_product_price, catalogrule_product, catalogsearch_fulltext, salesrule_rule.">
+            <arguments>
+                <argument key="indexes" value="catalog_product_price, catalogrule_product, catalogsearch_fulltext, salesrule_rule"/>
+            </arguments>
+            <conditions>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\PreventDatabaseConflicts" description="Assure that no conflicting steps are running or enqueued"/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="drop_cache" executorType="TechDivision\ProcessPipelines\Model\Executor\DropCache" sortOrder="60" description="Drop cache.">
+            <arguments>
+                <argument key="caches" value=""/>
+            </arguments>
+            <conditions>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="index_suspender_stop" executorType="\Hoegl\PipelinesImport\Model\Executor\IndexSuspender\Stop" sortOrder="70" description="Suspend Indexer" runAlwaysStep="true">
+            <conditions>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsFinished" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+    </pipeline>
+
+    <!--
+    ###############
+    ## STOCK Import
+    ###############
+    -->
+    <pipeline name="stock_import" description="Stock Import" use-working-directory="true" expire-in="2 hours">
+        <conditions>
+            <pipeline_condition type="TechDivision\ProcessPipelines\Helper\Condition\Pipeline\NoSiblingInProgress" description="Check that pipeline isn't already running"/>
+            <pipeline_condition type="Hoegl\PipelinesImport\Model\Virtual\Condition\StockAndReadyFilePresent" description="Check if stock and ready file for import exist."/>
+        </conditions>
+        <step name="move_files" executorType="Hoegl\Pipelines\Model\Executor\MoveFiles" sortOrder="10" description="Move files to working directory.">
+            <conditions>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="stock_transformation" executorType="\TechDivision\PacemakerImportBase\Model\Executor\ImportExecutor" sortOrder="20" description="Transform the stock import files.">
+            <arguments>
+                <argument key="config_key" value="import-msi-stock" />
+                <argument key="command" value="import:products" />
+                <argument key="operation" value="convert" />
+                <argument key="debug-mode" value="true"/>
+            </arguments>
+            <conditions>
+                <step_condition type="Hoegl\Pipelines\Model\Condition\CanLoadConfiguration" description="Load config_key."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="index_suspender_start" executorType="\Hoegl\PipelinesImport\Model\Executor\IndexSuspender\Start" sortOrder="30" description="Suspend Indexer" >
+            <conditions>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="stock_import" executorType="\TechDivision\PacemakerImportBase\Model\Executor\ImportExecutor" sortOrder="40" description="Import stock data">
+            <arguments>
+                <argument key="config_key" value="import-msi-stock" />
+                <argument key="command" value="import:products:inventory" />
+                <argument key="operation" value="add-update" />
+            </arguments>
+            <conditions>
+                <step_condition type="Hoegl\Pipelines\Model\Condition\CanLoadConfiguration" description="Load config_key."/>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\PreventDatabaseConflicts" description="Assure that no conflicting steps are running or enqueued"/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\DeltaIsFinished" description="Prevent that price import start while delta index is running."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="stock_import_product" executorType="\TechDivision\PacemakerImportBase\Model\Executor\ImportExecutor" sortOrder="50" description="Import delivery date as product data">
+            <conditions>
+                <step_condition type="Hoegl\Pipelines\Model\Condition\CanLoadConfiguration" description="Load config_key."/>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\PreventDatabaseConflicts" description="Assure that no conflicting steps are running or enqueued"/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+            <arguments>
+                <argument key="config_key" value="import-product" />
+                <argument key="command" value="import:products" />
+                <argument key="operation" value="add-update" />
+            </arguments>
+        </step>
+        <step name="reindex" executorType="Hoegl\PipelinesImport\Model\Executor\ConfiguredReindex" sortOrder="60" description="Reindex inventory.">
+            <arguments>
+                <argument key="indexes" value="inventory"/>
+            </arguments>
+            <conditions>
+                <step_condition type="Hoegl\PipelinesImport\Model\Condition\PreventDatabaseConflicts" description="Assure that no conflicting steps are running or enqueued"/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsCompleted" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+        <step name="index_suspender_stop" executorType="\Hoegl\PipelinesImport\Model\Executor\IndexSuspender\Stop" sortOrder="70" description="Suspend Indexer" runAlwaysStep="true">
+            <conditions>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\PreviousStepsFinished" description="Previous step needs to be finished."/>
+                <step_condition type="TechDivision\ProcessPipelines\Helper\Condition\Step\AttemptsLimit\Limit1" description="Try once."/>
+            </conditions>
+        </step>
+    </pipeline>
+</config>
