@@ -1,5 +1,5 @@
 {
-    "name": "hoegl/pipelines-import",
+    "name": "pixelmechanics/hoegl-pipelines-import",
     "description": "N/A",
     "require": {
         "magento/framework": "*"
